@@ -1,8 +1,10 @@
-import PropTypes from 'prop-types';
 import * as Yup from 'yup';
 import { nanoid } from 'nanoid';
 import { Formik } from 'formik';
 import { NewContact, Input, ErrCaption, Button } from './Contactform.styled';
+import { useDispatch, useSelector } from 'react-redux';
+import { getContacts } from 'redux/selectors';
+import { addContact } from '../../redux/contactsSlice';
 
 const uniqueId = {
   name: nanoid(),
@@ -24,8 +26,18 @@ const schema = Yup.object({
 });
 
 export const ContactForm = ({ handleSubmit }) => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(getContacts);
+
+  const checkContactName = values => {
+    const normalizedName = values.name.toLowerCase();
+    return contacts.find(({ name }) => name.toLowerCase() === normalizedName);
+  };
+
   const onSubmit = (values, { resetForm }) => {
-    handleSubmit(values);
+    if (checkContactName(values))
+      return alert(`${values.name} already is in the PhoneBook`);
+    dispatch(addContact(values));
     resetForm();
   };
 
@@ -57,8 +69,4 @@ export const ContactForm = ({ handleSubmit }) => {
       </NewContact>
     </Formik>
   );
-};
-
-ContactForm.propTypes = {
-  handleSubmit: PropTypes.func.isRequired,
 };
